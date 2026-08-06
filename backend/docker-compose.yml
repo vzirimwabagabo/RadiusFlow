@@ -1,0 +1,44 @@
+
+services:
+  radiusflow-api:
+    build: .
+    container_name: radiusflow-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://radiusflow:Zavala1997.%23@host.docker.internal:55432/radius}
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_EXPIRE_HOURS: ${JWT_EXPIRE_HOURS:-24}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-this-admin-password}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      API_V1_PREFIX: ${API_V1_PREFIX:-/api/v1}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-change-this-flask-secret-in-production}
+      AUTH_SESSION_HOURS: ${AUTH_SESSION_HOURS:-12}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
+      SMS_API_KEY: ${SMS_API_KEY:-}
+      SMS_USERNAME: ${SMS_USERNAME:-}
+      SMS_SENDER_ID: ${SMS_SENDER_ID:-RADIUS}
+      HOST: 0.0.0.0
+      PORT: 8000
+    # Connect to the host's PostgreSQL (already running on Contabo, not in Docker)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on: []
+    networks:
+      - radiusflow
+
+networks:
+  radiusflow:
+    driver: bridge
