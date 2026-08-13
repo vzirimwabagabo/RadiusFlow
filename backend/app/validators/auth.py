@@ -1,7 +1,7 @@
 import re
 
 
-ALLOWED_ROLES = frozenset({"admin", "operator", "viewer"})
+ALLOWED_ROLES = frozenset({"super_admin", "admin", "network_admin", "operator", "viewer"})
 USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{2,63}$")
 
 

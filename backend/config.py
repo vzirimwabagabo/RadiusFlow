@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # radiusflow_app is the application DB role. Never use the radius runtime role or postgres here.
-    DATABASE_URL: str = "postgresql+psycopg2://radiusflow_app:change-me@localhost:5432/radius"
+    DATABASE_URL: str = "postgresql+psycopg2://radiusflow_app:change-me@localhost:5432/radiusflow_app"
 
     JWT_SECRET: str = "change-this-secret-in-production"
     JWT_ALGORITHM: str = "HS256"
