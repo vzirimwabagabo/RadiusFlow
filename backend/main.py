@@ -6,8 +6,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from auth import get_current_user
 from config import settings
-from routers import auth as auth_routes
-from routers import groups, logs, monitor, nas, sessions, sms, system, users
+from database import Base, engine
+from routers import admin_users, audit, auth as auth_routes
+from routers import groups, logs, monitor, nas, sessions, sms, system, users, vouchers
+
+# Create application metadata tables (app_users, app_sessions, app_audit_logs, app_vouchers)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception:
+    pass  # Ignore if DB is unavailable during unit test imports
 
 logger = logging.getLogger("radiusflow.api.main")
 
@@ -33,12 +40,15 @@ app.add_middleware(
 def register_api_routes(prefix: str = "", include_in_schema: bool = True) -> None:
     auth_dependencies = [Depends(get_current_user)]
     app.include_router(auth_routes.router, prefix=prefix, tags=["Auth"], include_in_schema=include_in_schema)
+    app.include_router(admin_users.router, prefix=prefix, tags=["Admin Users"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
     app.include_router(users.router, prefix=prefix, tags=["Users"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
     app.include_router(groups.router, prefix=prefix, tags=["Packages"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
     app.include_router(nas.router, prefix=prefix, tags=["NAS"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
     app.include_router(sessions.router, prefix=prefix, tags=["Sessions"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
+    app.include_router(vouchers.router, prefix=prefix, tags=["Vouchers"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
     app.include_router(monitor.router, prefix=prefix, tags=["Monitoring"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
     app.include_router(logs.router, prefix=prefix, tags=["Logs"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
+    app.include_router(audit.router, prefix=prefix, tags=["Audit"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
     app.include_router(sms.router, prefix=prefix, tags=["Notifications"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
     app.include_router(system.router, prefix=prefix, tags=["System"], include_in_schema=include_in_schema)
 
