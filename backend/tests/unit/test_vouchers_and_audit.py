@@ -15,7 +15,11 @@ from app.schemas.voucher import VoucherGenerateRequest, VoucherRedeemRequest
 
 class TestVouchersAndAudit(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine("sqlite:///:memory:")
+        self.engine = create_engine(
+            "sqlite:///:memory:",
+            execution_options={"schema_translate_map": {"radiusflow": None}},
+        )
+
         Base.metadata.create_all(bind=self.engine)
         self.Session = sessionmaker(bind=self.engine)
         self.db = self.Session()
