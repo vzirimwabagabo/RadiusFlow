@@ -205,7 +205,7 @@ def main():
         print(f"\nError: {exc}\n")
         sys.exit(1)
     except Exception as exc:
-        print("\nUnexpected error during admin creation.\n")
+        print(f"\nUnexpected error during admin creation: {exc}\n")
         sys.exit(1)
     finally:
         db.close()

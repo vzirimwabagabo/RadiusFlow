@@ -75,6 +75,44 @@ class AuthService:
             raise
 
     def authenticate(self, username: str, password: str) -> AppUser:
+        input_str = (username or "").strip().lower()
+
+        # 1. Check enterprise radiusflow.admin_users table (email + Argon2)
+        try:
+            from app.models.radiusflow.admin_user import AdminUser
+            admin_user = (
+                self.db.query(AdminUser)
+                .filter(AdminUser.email == input_str, AdminUser.deleted_at.is_(None))
+                .first()
+            )
+            if admin_user:
+                password_valid = False
+                if admin_user.password_hash.startswith("$argon2"):
+                    try:
+                        from argon2 import PasswordHasher
+                        PasswordHasher().verify(admin_user.password_hash, password or "")
+                        password_valid = True
+                    except Exception:
+                        password_valid = False
+                else:
+                    password_valid = check_password_hash(admin_user.password_hash, password or "")
+
+                if password_valid and admin_user.is_active:
+                    admin_user.last_login_at = self._now()
+                    self.db.commit()
+                    role_name = admin_user.roles[0].name if admin_user.roles else "super_admin"
+                    return AppUser(
+                        id=admin_user.id,
+                        username=admin_user.email,
+                        password_hash=admin_user.password_hash,
+                        role=role_name,
+                        is_active=admin_user.is_active,
+                        last_login_at=admin_user.last_login_at,
+                    )
+        except Exception:
+            self.db.rollback()
+
+        # 2. Fallback to legacy app_users table
         try:
             normalized_username = normalize_username(username)
         except ValueError:
