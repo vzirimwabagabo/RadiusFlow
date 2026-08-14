@@ -8,7 +8,7 @@ from auth import get_current_user
 from config import settings
 from database import Base, engine
 from routers import admin_users, audit, auth as auth_routes
-from routers import groups, logs, monitor, nas, sessions, sms, system, users, vouchers
+from routers import groups, logs, monitor, nas, payments, sessions, sms, system, users, vouchers
 
 # Create application metadata tables (app_users, app_sessions, app_audit_logs, app_vouchers)
 try:
@@ -47,6 +47,7 @@ def register_api_routes(prefix: str = "", include_in_schema: bool = True) -> Non
     app.include_router(nas.router, prefix=prefix, tags=["NAS"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
     app.include_router(sessions.router, prefix=prefix, tags=["Sessions"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
     app.include_router(vouchers.router, prefix=prefix, tags=["Vouchers"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
+    app.include_router(payments.router, prefix=prefix, tags=["Payments"], include_in_schema=include_in_schema)
     app.include_router(monitor.router, prefix=prefix, tags=["Monitoring"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
     app.include_router(logs.router, prefix=prefix, tags=["Logs"], dependencies=auth_dependencies, include_in_schema=include_in_schema)
     app.include_router(audit.router, prefix=prefix, tags=["Audit"], dependencies=auth_dependencies, include_in_schema=include_in_schema)

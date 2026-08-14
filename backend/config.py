@@ -30,6 +30,15 @@ class Settings(BaseSettings):
     PAYMENT_PROVIDER_URL: str = ""
     PAYMENT_WEBHOOK_SECRET: str = ""
 
+    # --- Safaricom Daraja M-Pesa API ---
+    DARAJA_CONSUMER_KEY: str = ""
+    DARAJA_CONSUMER_SECRET: str = ""
+    DARAJA_PASSKEY: str = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
+    DARAJA_BUSINESS_SHORTCODE: str = "174379"
+    DARAJA_TRANSACTION_TYPE: str = "CustomerPayBillOnline"
+    DARAJA_ENVIRONMENT: str = "sandbox"  # sandbox or production
+    DARAJA_CALLBACK_URL: str = "http://localhost:8000/api/v1/payments/callback"
+
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     API_V1_PREFIX: str = "/api/v1"
