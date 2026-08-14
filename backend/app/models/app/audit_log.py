@@ -4,6 +4,7 @@ from database import Base
 
 class AuditLog(Base):
     __tablename__ = "app_audit_logs"
+    __table_args__ = {"schema": "radiusflow"}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     action = Column(String(64), nullable=False, index=True)

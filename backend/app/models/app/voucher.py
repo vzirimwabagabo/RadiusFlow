@@ -4,6 +4,7 @@ from database import Base
 
 class Voucher(Base):
     __tablename__ = "app_vouchers"
+    __table_args__ = {"schema": "radiusflow"}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     code = Column(String(32), nullable=False, unique=True, index=True)
