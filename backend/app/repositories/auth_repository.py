@@ -2,10 +2,15 @@ from datetime import datetime
 
 from app.models.app.session import AppSession
 from app.models.app.user import AppUser
+from app.models.radiusflow.admin_session import AdminSession
 from app.repositories.base import BaseRepository
 
 
 class AuthRepository(BaseRepository):
+    # ------------------------------------------------------------------ #
+    # Legacy app_users / app_sessions (FreeRADIUS subscriber accounts)    #
+    # ------------------------------------------------------------------ #
+
     def get_user_by_id(self, user_id: int):
         return self.db.query(AppUser).filter(AppUser.id == user_id).first()
 
@@ -39,4 +44,31 @@ class AuthRepository(BaseRepository):
                 AppSession.revoked_at.is_(None),
             )
             .update({AppSession.revoked_at: revoked_at}, synchronize_session=False)
+        )
+
+    # ------------------------------------------------------------------ #
+    # Enterprise radiusflow.admin_sessions                                 #
+    # ------------------------------------------------------------------ #
+
+    def get_enterprise_session_by_hash(self, token_hash: str) -> AdminSession | None:
+        return (
+            self.db.query(AdminSession)
+            .filter(AdminSession.token_hash == token_hash)
+            .first()
+        )
+
+    def add_enterprise_session(self, session: AdminSession) -> None:
+        self.db.add(session)
+
+    def revoke_enterprise_session(self, session: AdminSession, revoked_at: datetime) -> None:
+        session.revoked_at = revoked_at
+
+    def revoke_enterprise_user_sessions(self, admin_user_id: int, revoked_at: datetime) -> int:
+        return (
+            self.db.query(AdminSession)
+            .filter(
+                AdminSession.admin_user_id == admin_user_id,
+                AdminSession.revoked_at.is_(None),
+            )
+            .update({AdminSession.revoked_at: revoked_at}, synchronize_session=False)
         )

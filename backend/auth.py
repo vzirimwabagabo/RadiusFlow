@@ -8,7 +8,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.jwt import create_access_token, verify_token
-from app.services.auth_service import AuthService
+from app.services.auth_service import AuthService, EnterpriseUser
 from config import settings
 from database import get_db
 
