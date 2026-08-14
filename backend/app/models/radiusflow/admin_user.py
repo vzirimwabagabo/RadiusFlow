@@ -62,4 +62,4 @@ class AdminUserRole(Base):
 
     admin_user_id = Column(Integer, ForeignKey("radiusflow.admin_users.id", ondelete="CASCADE"), primary_key=True)
     role_id = Column(Integer, ForeignKey("radiusflow.roles.id", ondelete="CASCADE"), primary_key=True)
-    assigned_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())

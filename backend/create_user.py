@@ -140,7 +140,9 @@ def create_administrator(email_input: str, full_name: str, requested_role: str, 
         )
         db.add(user_role)
 
-        # Audit Event Logging (if available)
+        db.commit()
+
+        # Audit Event Logging (if audit table exists)
         try:
             from app.repositories.audit_repository import AuditRepository
             AuditRepository(db).record(
@@ -151,10 +153,7 @@ def create_administrator(email_input: str, full_name: str, requested_role: str, 
                 details=f"Bootstrap created admin {email} with role {role.name}",
             )
         except Exception:
-            # Audit recording TODO note if DB table or schema not wired yet
             pass
-
-        db.commit()
 
         print("\nAdministrator created successfully.")
         print(f"Email: {new_admin.email}")
