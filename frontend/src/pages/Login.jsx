@@ -100,18 +100,18 @@ const Login = () => {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="username" className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                    Management Username
+                    Email Address
                   </label>
                   <div className="relative">
                     <input
                       id="username"
                       name="username"
-                      type="text"
-                      autoComplete="username"
+                      type="email"
+                      autoComplete="email"
                       required
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="e.g. admin"
+                      placeholder="e.g. superadmin@gmail.com"
                       className="w-full rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/15"
                     />
                   </div>

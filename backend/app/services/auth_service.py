@@ -76,15 +76,18 @@ class AuthService:
 
     def authenticate(self, username: str, password: str) -> AppUser:
         input_str = (username or "").strip().lower()
+        logger.info("authenticate: input_str=%r", input_str)
 
         # 1. Check enterprise radiusflow.admin_users table (email + Argon2)
         try:
             from app.models.radiusflow.admin_user import AdminUser
+            from sqlalchemy import text as sa_text
             admin_user = (
                 self.db.query(AdminUser)
                 .filter(AdminUser.email == input_str, AdminUser.deleted_at.is_(None))
                 .first()
             )
+            logger.info("authenticate: admin_user lookup result=%r", admin_user)
             if admin_user:
                 password_valid = False
                 if admin_user.password_hash.startswith("$argon2"):
@@ -92,15 +95,29 @@ class AuthService:
                         from argon2 import PasswordHasher
                         PasswordHasher().verify(admin_user.password_hash, password or "")
                         password_valid = True
-                    except Exception:
+                        logger.info("authenticate: Argon2 verify succeeded")
+                    except Exception as e:
+                        logger.warning("authenticate: Argon2 verify failed: %s", e)
                         password_valid = False
                 else:
                     password_valid = check_password_hash(admin_user.password_hash, password or "")
+                    logger.info("authenticate: werkzeug check_password_hash result=%r", password_valid)
 
+                logger.info("authenticate: password_valid=%r is_active=%r", password_valid, admin_user.is_active)
                 if password_valid and admin_user.is_active:
                     admin_user.last_login_at = self._now()
                     self.db.commit()
-                    role_name = admin_user.roles[0].name if admin_user.roles else "super_admin"
+                    # Fetch role via direct SQL to avoid ORM relationship cache issues
+                    role_row = self.db.execute(
+                        sa_text(
+                            "SELECT r.name FROM radiusflow.roles r "
+                            "JOIN radiusflow.admin_user_roles ur ON ur.role_id = r.id "
+                            "WHERE ur.admin_user_id = :uid LIMIT 1"
+                        ),
+                        {"uid": admin_user.id},
+                    ).fetchone()
+                    role_name = role_row[0] if role_row else "super_admin"
+                    logger.info("authenticate: enterprise login success email=%r role=%r", input_str, role_name)
                     return AppUser(
                         id=admin_user.id,
                         username=admin_user.email,
@@ -109,7 +126,12 @@ class AuthService:
                         is_active=admin_user.is_active,
                         last_login_at=admin_user.last_login_at,
                     )
-        except Exception:
+                else:
+                    raise InvalidCredentialsError("Invalid email or password.")
+        except InvalidCredentialsError:
+            raise
+        except Exception as exc:
+            logger.exception("authenticate: enterprise lookup error: %s", exc)
             self.db.rollback()
 
         # 2. Fallback to legacy app_users table
